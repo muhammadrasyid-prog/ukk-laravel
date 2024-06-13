@@ -15,25 +15,23 @@ class KategoriController extends Controller
      */
     public function index(Request $request)
     {
-        //
-        // $rsetKategori = Kategori::all();
-
-        // return view('v_kategori.index', compact('rsetKategori'));
-
-        if ($request->search){
-            $rsetKategori = DB::table('kategori')->select('id','deskripsi',DB::raw('ketKategorik(kategori) as kat'))
-                                                 ->where('id','like','%'.$request->search.'%')
-                                                 ->orWhere('deskripsi','like','%'.$request->search.'%')
-                                                 ->orWhere('kategori', '=', '%'.$request->search.'%')
-                                                 ->paginate(10);
-        }else {
-            $rsetKategori = DB::table('kategori')->select('id','deskripsi',DB::raw('ketKategorik(kategori) as kat'))
-                                                //  ->where('kategori', '=', 'A') // Batasi hanya untuk kategori 'A'
-                                                 ->paginate(10);
+        if ($request->search) {
+            $rsetKategori = DB::table('kategori')
+                            ->select('id', 'deskripsi', DB::raw('getKategori(kategori) as kat'))
+                            ->where('id','like','%'.$request->search.'%')
+                            // ->orWhere('deskripsi','like','%'.$request->search.'%')
+                            ->orWhere('kategori','like','%'.$request->search.'%')
+                            //  ->orWhere(DB::raw('ketKategori(kategori)'),'like','%'.$request->search.'%')
+                            ->paginate(10);
+        } else {
+            $rsetKategori = DB::table('kategori')
+                            ->select('id', 'deskripsi', DB::raw('getKategori(kategori) as kat'))
+                            ->paginate(10);
         }
-        // return $rsetKategori;
+        
         return view('v_kategori.index', compact('rsetKategori'));
     }
+    
 
     /**
      * Show the form for creating a new resource.
@@ -55,14 +53,42 @@ class KategoriController extends Controller
             'kategori' => 'required|in:M,A,BHP,BTHP',
         ]);
 
-        Kategori::create([
-            'deskripsi' => $request->deskripsi,
-            'kategori' => $request->kategori,
-        ]); 
+        // Kategori::create([
+        //     'deskripsi' => $request->deskripsi,
+        //     'kategori' => $request->kategori,
+        // ]); 
 
-        return redirect()->route('kategori.index')->with(['Success' => 'Data Kategori Berhasil Disimpan']);
+        // return redirect()->route('kategori.index')->with(['success' => 'Data Kategori Berhasil Disimpan']);
+        
+        try {
+            DB::beginTransaction(); // Mulai transaksi
+    
+            // Sisipkan data baru ke tabel kategori
+            DB::table('kategori')->insert([
+                'deskripsi' => $request->deskripsi,
+                'kategori' => $request->kategori,
+            ]);
+    
+            DB::commit(); // Commit perubahan jika berhasil
+
+            // Kembali ke halaman index dengan pesan sukses
+            return redirect()->route('kategori.index')->with([
+                'success' => 'Data berhasil disimpan!'
+            ]);
+
+        } catch (\Exception $e) {
+            // Laporkan kesalahan
+            report($e);
+    
+            // Rollback perubahan jika terjadi kesalahan
+            DB::rollBack();
+    
+            // Kembali ke halaman pembuatan kategori dengan pesan error
+            return redirect()->route('kategori.index')->with([
+                'error' => 'Terjadi kesalahan saat menyimpan data! Kesalahan: ' . $e->getMessage()
+            ]);
+        }
     }
-
     /**
      * Display the specified resource.
      */
@@ -103,7 +129,7 @@ class KategoriController extends Controller
             'kategori' => $request->kategori,
         ]); 
 
-        return redirect()->route('kategori.index')->with(['Success' => 'Data Kategori Berhasil Diubah']);
+        return redirect()->route('kategori.index')->with(['success' => 'Data Kategori Berhasil Diubah']);
     }
 
     /**
@@ -113,11 +139,11 @@ class KategoriController extends Controller
     {
         //
         if (DB::table('kategori')->where('kategori', $id)->exists()){
-            return redirect()->route('kategori.index')->with(['Gagal' => 'Data Gagal Dihapus']);
+            return redirect()->route('kategori.index')->with(['error' => 'Data Gagal Dihapus']);
         } else {
             $rsetKategori = Kategori::find($id);
             $rsetKategori->delete();
-            return redirect()->route('kategori.index')->with(['Success' => 'Data Berhasil Dihapus']);
+            return redirect()->route('kategori.index')->with(['success' => 'Data Berhasil Dihapus']);
         }
     }
 }

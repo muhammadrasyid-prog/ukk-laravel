@@ -11,10 +11,28 @@ use Illuminate\Support\Facades\DB;
 
 class BarangController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rsetBarang = Barang::all();
-        $rsetBarang = Barang::with('kategori')->get();
+        // $rsetBarang = Barang::all();
+        // $rsetBarang = Barang::with('kategori')->get();
+        // return view('v_barang.index', compact('rsetBarang'));
+
+        // menggunakan eloquent
+        if ($request->search) {
+            $rsetBarang = Barang::with('kategori')
+                            ->where('id','like','%'.$request->search.'%')
+                            ->orWhere('merk', 'like','%'.$request->search.'%')
+                            ->orWhere('seri','like','%'.$request->search.'%')
+                            ->orWhere('spesifikasi','like','%'.$request->search.'%')
+                            ->orWhere('stok','like','%'.$request->search.'%')
+                            ->orWhereHas('kategori', function($query) use ($request) {
+                                $query->where('deskripsi','like','%'.$request->search.'%');
+                            })
+                            ->paginate(10);
+        } else {
+            $rsetBarang = Barang::with('kategori')->paginate(10);
+        }
+        
         return view('v_barang.index', compact('rsetBarang'));
     }
 
@@ -40,15 +58,44 @@ class BarangController extends Controller
                 ->withInput();
         }
 
-        Barang::create([
-            'merk' => $request->merk,
-            'seri' => $request->seri,
-            'spesifikasi' => $request->spesifikasi,
-            'stok' => $request->stok,
-            'kategori_id' => $request->kategori_id,
-        ]);
+        // Barang::create([
+        //     'merk' => $request->merk,
+        //     'seri' => $request->seri,
+        //     'spesifikasi' => $request->spesifikasi,
+        //     'stok' => $request->stok,
+        //     'kategori_id' => $request->kategori_id,
+        // ]);
 
-        return redirect()->route('barang.index')->with(['Success' => 'Data Barang Berhasil Disimpan!']);
+        // return redirect()->route('barang.index')->with(['success' => 'Data Barang Berhasil Disimpan!']);
+        
+        try {
+            DB::beginTransaction(); // Mulai transaksi
+    
+            // Sisipkan data baru ke tabel kategori
+            DB::table('barang')->insert([
+                'merk' => $request->merk,
+                'seri' => $request->seri,
+                'spesifikasi' => $request->spesifikasi,
+                'kategori_id' => $request->kategori_id,
+            ]);
+            DB::commit(); // Commit perubahan jika berhasil
+
+            // Kembali ke halaman index dengan pesan sukses
+            return redirect()->route('barang.index')->with([
+                'success' => 'Data berhasil disimpan!'
+            ]);
+            
+        } catch (\Exception $e) {
+            // Rollback perubahan jika terjadi kesalahan
+            DB::rollBack();
+            // Laporkan kesalahan
+            report($e);
+                
+            // Kembali ke halaman pembuatan kategori dengan pesan error
+            return redirect()->route('barang.index')->with([
+                'error' => 'Terjadi kesalahan saat menyimpan data! Kesalahan: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function show(string $id)
@@ -98,11 +145,11 @@ class BarangController extends Controller
     public function destroy($id)
     {
         if (DB::table('barangmasuk')->where('barang_id', $id)->exists() || DB::table('barangkeluar')->where('barang_id', $id)->exists()){ 
-            return redirect()->route('barang.index')->with(['Gagal' => 'Data Gagal dihapus']);
+            return redirect()->route('barang.index')->with(['error' => 'Data Gagal dihapus']);
         } else {
             $rseBarang = Barang::find($id);
             $rseBarang->delete();
-            return redirect()->route('barang.index')->with(['Success' => 'Data Berhasil dihapus']);
+            return redirect()->route('barang.index')->with(['success' => 'Data Berhasil dihapus']);
         }
     }
 }

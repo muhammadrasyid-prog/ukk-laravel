@@ -35,7 +35,7 @@
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3">NEWBIEKoding</div>
+                <div class="sidebar-brand-text mx-3">SHOPKODING</div>
             </a>
 
             <!-- Divider -->
@@ -61,16 +61,17 @@
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne"
                     aria-expanded="true" aria-controls="collapseOne">
                     <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M23.25 8.25a3.003 3.003 0 0 0-3-3H18V4.5a2.252 2.252 0 0 0-2.25-2.25h-7.5A2.252 2.252 0 0 0 6 4.5v.75H3.75a3.003 3.003 0 0 0-3 3v2.25h22.5V8.25Zm-6.75-3h-9V4.5a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 .75.75v.75Z"></path>
-                        <path d="M15.75 12.375a1.125 1.125 0 0 1-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-.188A.188.188 0 0 0 8.062 12H.75v6.75a3 3 0 0 0 3 3h16.5a3 3 0 0 0 3-3V12h-7.313a.188.188 0 0 0-.187.188v.187Z"></path>
+                        <path d="M22.125 7.875H1.875a1.125 1.125 0 0 1 0-2.25h20.25a1.125 1.125 0 0 1 0 2.25Z"></path>
+                        <path d="M18.375 13.125H5.625a1.125 1.125 0 1 1 0-2.25h12.75a1.125 1.125 0 1 1 0 2.25Z"></path>
+                        <path d="M13.875 18.375h-3.75a1.125 1.125 0 1 1 0-2.25h3.75a1.125 1.125 0 1 1 0 2.25Z"></path>
                     </svg>
-                    <span>Barang</span>
+                    <span>Kategoi</span>
                 </a>
                 <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Custom Components:</h6>
-                        <a class="collapse-item" href="{{route('barang.index')}}">Show All</a>
-                        <a class="collapse-item" href="{{route('barang.create')}}">Entry</a>
+                        <a class="collapse-item" href="{{route('kategori.index')}}">Show All</a>
+                        <a class="collapse-item" href="{{route('kategori.create')}}">Entry</a>
                     </div>
                 </div>
             </li>
@@ -79,17 +80,16 @@
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
                     aria-expanded="true" aria-controls="collapseTwo">
                     <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22.125 7.875H1.875a1.125 1.125 0 0 1 0-2.25h20.25a1.125 1.125 0 0 1 0 2.25Z"></path>
-                        <path d="M18.375 13.125H5.625a1.125 1.125 0 1 1 0-2.25h12.75a1.125 1.125 0 1 1 0 2.25Z"></path>
-                        <path d="M13.875 18.375h-3.75a1.125 1.125 0 1 1 0-2.25h3.75a1.125 1.125 0 1 1 0 2.25Z"></path>
+                        <path d="M23.25 8.25a3.003 3.003 0 0 0-3-3H18V4.5a2.252 2.252 0 0 0-2.25-2.25h-7.5A2.252 2.252 0 0 0 6 4.5v.75H3.75a3.003 3.003 0 0 0-3 3v2.25h22.5V8.25Zm-6.75-3h-9V4.5a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 .75.75v.75Z"></path>
+                        <path d="M15.75 12.375a1.125 1.125 0 0 1-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-.188A.188.188 0 0 0 8.062 12H.75v6.75a3 3 0 0 0 3 3h16.5a3 3 0 0 0 3-3V12h-7.313a.188.188 0 0 0-.187.188v.187Z"></path>
                     </svg>
-                    <span>Kategori</span>
+                    <span>Barang</span>
                 </a>
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Custom Components:</h6>
-                        <a class="collapse-item" href="{{route('kategori.index')}}">Show All</a>
-                        <a class="collapse-item" href="{{route('kategori.create')}}">Entry</a>
+                        <a class="collapse-item" href="{{route('barang.index')}}">Show All</a>
+                        <a class="collapse-item" href="{{route('barang.create')}}">Entry</a>
                     </div>
                 </div>
             </li>
@@ -318,8 +318,8 @@
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
-                                <img class="img-profile rounded-circle"
-                                    src="img/undraw_profile.svg">
+                                <!-- <img class="img-profile rounded-circle" src="{{ asset('img/profil.svg') }}"> -->
+                                <i class="fas fa-user-circle fa-lg fa-fw"></i>
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"

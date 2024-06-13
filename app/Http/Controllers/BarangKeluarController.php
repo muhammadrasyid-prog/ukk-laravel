@@ -7,13 +7,36 @@ use App\Models\Barang;
 use App\Models\BarangKeluar;
 use App\Models\BarangMasuk;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class BarangKeluarController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $barangKeluar = BarangKeluar::all();
-        return view('v_barangkeluar.index', compact('barangKeluar'));
+        // $barangKeluar = BarangKeluar::all();
+        // return view('v_barangkeluar.index', compact('barangKeluar'));
+
+        $rsetBarang = Barang::all();
+
+        // Menggunakan eloquent untuk pencarian
+        if ($request->search) {
+            $barangKeluar = barangKeluar::select('barangkeluar.*', 'barang.seri as seri')
+                            ->join('barang', 'barang_id', '=', 'barang.id')
+                            ->where('barangkeluar.id','like','%'.$request->search.'%')
+                            ->orWhere('barangkeluar.tgl_keluar','like','%'.$request->search.'%')
+                            ->orWhere('barangkeluar.qty_keluar','like','%'.$request->search.'%')
+                            ->orWhereHas('barang', function($query) use ($request) {
+                                $query->where('seri','like','%'.$request->search.'%')
+                                    ->orWhere('merk','like','%'.$request->search.'%');
+                            })
+                            ->paginate(10);
+        } else {
+            $barangKeluar = barangKeluar::select('barangkeluar.*', 'barang.seri as seri')
+                                    ->join('barang', 'barang_id', '=', 'barang.id')
+                                    ->paginate(10);
+        }
+        // Kembalikan view dengan barangMasuk dan rsetBarang
+        return view('v_barangkeluar.index', compact('barangKeluar', 'rsetBarang'));
     }
 
     public function create()
@@ -74,13 +97,44 @@ class BarangKeluarController extends Controller
                 ->withInput();
         }
 
-        BarangKeluar::create([
-            'tgl_keluar' => $request->tgl_keluar,
-            'qty_keluar' => $request->qty_keluar,
-            'barang_id' => $request->barang_id,
-        ]);
+        // BarangKeluar::create([
+        //     'tgl_keluar' => $request->tgl_keluar,
+        //     'qty_keluar' => $request->qty_keluar,
+        //     'barang_id' => $request->barang_id,
+        // ]);
 
-        return redirect()->route('barangkeluar.index')->with(['success' => 'Data Barang Keluar Berhasil Disimpan!']);
+        // return redirect()->route('barangkeluar.index')->with(['success' => 'Data Barang Keluar Berhasil Disimpan!']);
+        
+        try {
+            DB::beginTransaction(); // Mulai transaksi
+    
+            // Sisipkan data baru ke tabel kategori
+            DB::table('barangkeluar')->insert([
+                'tgl_keluar' => $request->tgl_keluar,
+                'qty_keluar' => $request->qty_keluar,
+                'barang_id' => $request->barang_id,
+            ]);
+    
+            DB::commit(); // Commit perubahan jika berhasil
+
+            // Kembali ke halaman index dengan pesan sukses
+            return redirect()->route('barangkeluar.index')->with([
+                'success' => 'Data berhasil disimpan!'
+            ]);
+
+        } catch (\Exception $e) {
+            // Laporkan kesalahan
+            report($e);
+    
+            // Rollback perubahan jika terjadi kesalahan
+            DB::rollBack();
+    
+            // Kembali ke halaman pembuatan kategori dengan pesan error
+            return redirect()->route('barangkeluar.index')->with([
+                'error' => 'Terjadi kesalahan saat menyimpan data! Kesalahan: ' . $e->getMessage()
+            ]);
+        }
+
     }
 
     public function show(string $id)

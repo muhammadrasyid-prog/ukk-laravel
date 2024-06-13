@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\BarangMasuk;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 
 class BarangMasukController extends Controller
@@ -13,11 +14,34 @@ class BarangMasukController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         //
-        $barangMasuk = BarangMasuk::all();
-        return view('v_barangmasuk.index', compact('barangMasuk'));
+        // $barangMasuk = BarangMasuk::all();
+        // return view('v_barangmasuk.index', compact('barangMasuk'));
+        // menggunakan eloquent
+        $rsetBarang = Barang::all();
+
+        // Menggunakan eloquent untuk pencarian
+        if ($request->search) {
+            $barangMasuk = BarangMasuk::select('barangmasuk.*', 'barang.seri as seri')
+                            ->join('barang', 'barang_id', '=', 'barang.id')
+                            ->where('barangmasuk.id','like','%'.$request->search.'%')
+                            ->orWhere('barangmasuk.tgl_masuk','like','%'.$request->search.'%')
+                            ->orWhere('barangmasuk.qty_masuk','like','%'.$request->search.'%')
+                            ->orWhereHas('barang', function($query) use ($request) {
+                                $query->where('seri','like','%'.$request->search.'%')
+                                    ->orWhere('merk','like','%'.$request->search.'%');
+                            })
+                            ->paginate(10);
+        } else {
+            $barangMasuk = BarangMasuk::select('barangmasuk.*', 'barang.seri as seri')
+                                    ->join('barang', 'barang_id', '=', 'barang.id')
+                                    ->paginate(10);
+        }
+
+        // Kembalikan view dengan barangMasuk dan rsetBarang
+        return view('v_barangmasuk.index', compact('barangMasuk', 'rsetBarang'));
     }
 
     /**
@@ -48,13 +72,44 @@ class BarangMasukController extends Controller
                 ->withInput();
         }
 
-        BarangMasuk::create([
-            'tgl_masuk' => $request->tgl_masuk,
-            'qty_masuk' => $request->qty_masuk,
-            'barang_id' => $request->barang_id,
-        ]);
+        // BarangMasuk::create([
+        //     'tgl_masuk' => $request->tgl_masuk,
+        //     'qty_masuk' => $request->qty_masuk,
+        //     'barang_id' => $request->barang_id,
+        // ]);
 
-        return redirect()->route('barangmasuk.index')->with(['Success' => 'Data Barang Masuk Berhasil Disimpan']);
+        // return redirect()->route('barangmasuk.index')->with(['success' => 'Data Barang Masuk Berhasil Disimpan']);
+
+        try {
+            DB::beginTransaction(); // Mulai transaksi
+    
+            // Sisipkan data baru ke tabel kategori
+            DB::table('barangmasuk')->insert([
+                'tgl_masuk' => $request->tgl_masuk,
+                'qty_masuk' => $request->qty_masuk,
+                'barang_id' => $request->barang_id,
+            ]);
+    
+            DB::commit(); // Commit perubahan jika berhasil
+
+            // Kembali ke halaman index dengan pesan sukses
+            return redirect()->route('barangmasuk.index')->with([
+                'success' => 'Data berhasil disimpan!'
+            ]);
+
+        } catch (\Exception $e) {
+            // Rollback perubahan jika terjadi kesalahan
+            DB::rollBack();
+
+            // Laporkan kesalahan
+            report($e);
+
+    
+            // Kembali ke halaman pembuatan kategori dengan pesan error
+            return redirect()->route('barangmasuk.index')->with([
+                'error' => 'Terjadi kesalahan saat menyimpan data! Kesalahan: ' . $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -104,7 +159,7 @@ class BarangMasukController extends Controller
             'barang_id' => $request->barang_id,
         ]);
 
-        return redirect()->route('barangmasuk.index')->with(['Success' => 'Data Barang Masuk Berhasil Diubah']);
+        return redirect()->route('barangmasuk.index')->with(['success' => 'Data Barang Masuk Berhasil Diubah']);
     }
 
     /**
@@ -122,6 +177,6 @@ class BarangMasukController extends Controller
         return redirect()->route('barangmasuk.index')->with('error', 'Stok barang tidak mencukupi untuk menghapus data ini.');
     }
         $barangMasuk->delete();
-        return redirect()->route('barangmasuk.index')->with(['Success' => 'Data Barang Masuk Berhasil Dihapus']);
+        return redirect()->route('barangmasuk.index')->with(['success' => 'Data Barang Masuk Berhasil Dihapus']);
     }
 }

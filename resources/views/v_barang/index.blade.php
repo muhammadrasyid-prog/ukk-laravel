@@ -1,14 +1,28 @@
 @extends('layout.adm-main1')
 
 @section('content')
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <a href="{{ route('barang.create') }}" class="btn btn-md btn-success mb-3">TAMBAH BARANG</a>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 bg-light text-left">
+                <a href="{{ route('barang.create') }}" class="btn btn-md btn-success btn-sm pull-right">TAMBAH BARANG</a>
+                </div>
+                <div class="col-md-6 bg-light text-right">
+                    
+                    <form action="/barang" method="GET"
+                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                        @csrf
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2" value="{{ request('search') }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fas fa-search fa-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
+            </div>
 
                     @if(session('success'))
                         <div class="alert alert-success">
